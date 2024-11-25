@@ -1,5 +1,6 @@
 aiohttp[speedups]
 aiofiles
+pytz
 aioshutil
 anytree==2.8.0
 apscheduler
@@ -30,7 +31,7 @@ psutil
 pybase64
 pycountry
 pymongo
-git+https://github.com/youesky/pyrogram
+git+https://github.com/KurimuzonAkuma/pyrogram
 python-dotenv
 python-magic
 qbittorrent-api
