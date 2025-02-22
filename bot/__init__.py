@@ -6,7 +6,9 @@ from inspect import signature
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pyrogram import Client as tgClient, enums, utils as pyroutils
 from pymongo import MongoClient
+import asyncio
 from asyncio import Lock
+from asyncio import get_event_loop
 from dotenv import load_dotenv, dotenv_values
 from threading import Thread
 from time import sleep, time
@@ -820,8 +822,9 @@ else:
     qb_client.app_set_preferences(qb_opt)
 
 log_info("Creating client from BOT_TOKEN")
-bot = wztgClient('bot', TELEGRAM_API, TELEGRAM_HASH, bot_token=BOT_TOKEN, workers=1000,
-               parse_mode=enums.ParseMode.HTML).start()
+loop = get_event_loop()
+bot = loop.run_until_complete(wztgClient('bot', TELEGRAM_API, TELEGRAM_HASH, bot_token=BOT_TOKEN, 
+                                       workers=1000, parse_mode=enums.ParseMode.HTML).start())
 bot_loop = bot.loop
 bot_name = bot.me.username
 scheduler = AsyncIOScheduler(timezone=str(get_localzone()), event_loop=bot_loop)
