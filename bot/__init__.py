@@ -228,24 +228,21 @@ USER_SESSION_STRING = environ.get('USER_SESSION_STRING', '')
 if len(USER_SESSION_STRING) != 0:
     log_info("Creating client from USER_SESSION_STRING")
     try:
-        # Create and start the client
+        # Create the client
         client = wztgClient('user', TELEGRAM_API, TELEGRAM_HASH, session_string=USER_SESSION_STRING,
                           parse_mode=enums.ParseMode.HTML, no_updates=True)
-        client.start()
-        user = client
         
-        # Try accessing me as a property instead of a method
-        if hasattr(user, 'me') and user.me is not None:
-            IS_PREMIUM_USER = user.me.is_premium
-        else:
-            # Fallback to get_me() method if available
-            import asyncio
-            
-            async def get_me_info():
-                me = await user.get_me()
-                return me.is_premium
-            
-            IS_PREMIUM_USER = asyncio.get_event_loop().run_until_complete(get_me_info())
+        # Start the client properly - this needs to be an await or run in a sync context
+        import asyncio
+        
+        async def initialize_client():
+            await client.start()
+            me = await client.get_me()
+            return me.is_premium
+        
+        # Run the async initialization in the current event loop
+        IS_PREMIUM_USER = asyncio.get_event_loop().run_until_complete(initialize_client())
+        user = client
         
     except Exception as e:
         log_error(f"Failed making client from USER_SESSION_STRING : {e}")
