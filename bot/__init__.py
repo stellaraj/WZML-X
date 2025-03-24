@@ -222,6 +222,7 @@ def wztgClient(*args, **kwargs):
         kwargs['max_concurrent_transmissions'] = 1000
     return tgClient(*args, **kwargs)
 
+# User client initialization
 IS_PREMIUM_USER = False
 user = ''
 USER_SESSION_STRING = environ.get('USER_SESSION_STRING', '')
@@ -232,9 +233,7 @@ if len(USER_SESSION_STRING) != 0:
         client = wztgClient('user', TELEGRAM_API, TELEGRAM_HASH, session_string=USER_SESSION_STRING,
                           parse_mode=enums.ParseMode.HTML, no_updates=True)
         
-        # Start the client properly - this needs to be an await or run in a sync context
-        import asyncio
-        
+        # Start the client properly
         async def initialize_client():
             await client.start()
             me = await client.get_me()
@@ -247,6 +246,31 @@ if len(USER_SESSION_STRING) != 0:
     except Exception as e:
         log_error(f"Failed making client from USER_SESSION_STRING : {e}")
         user = ''
+
+# Bot client initialization - applying the same pattern as above
+log_info("Creating client from BOT_TOKEN")
+try:
+    # Create the bot client
+    bot_client = wztgClient('bot', TELEGRAM_API, TELEGRAM_HASH, bot_token=BOT_TOKEN,
+                          workers=1000, parse_mode=enums.ParseMode.HTML)
+    
+    # Start the bot client properly
+    async def initialize_bot():
+        await bot_client.start()
+        return bot_client
+    
+    # Run the async initialization in the current event loop
+    loop = asyncio.get_event_loop()
+    bot = loop.run_until_complete(initialize_bot())
+    
+    # Set up bot configuration
+    bot_loop = bot.loop
+    bot_name = bot.me.username
+    scheduler = AsyncIOScheduler(timezone=str(get_localzone()), event_loop=bot_loop)
+    
+except Exception as e:
+    log_error(f"Failed making bot client from BOT_TOKEN: {e}")
+    # Handle bot initialization failure - you might want to exit the program here
 
 MEGA_EMAIL = environ.get('MEGA_EMAIL', '')
 MEGA_PASSWORD = environ.get('MEGA_PASSWORD', '')
@@ -833,11 +857,25 @@ else:
         if v in ["", "*"]:
             del qb_opt[k]
     qb_client.app_set_preferences(qb_opt)
-
+async def create_bot():
+    log_info("Creating client from BOT_TOKEN")
+    client = wztgClient(
+        'bot', 
+        TELEGRAM_API, 
+        TELEGRAM_HASH, 
+        bot_token=BOT_TOKEN,
+        workers=1000, 
+        parse_mode=enums.ParseMode.HTML
+    )
+    await client.start()
+    return client
 log_info("Creating client from BOT_TOKEN")
 loop = get_event_loop()
-bot = loop.run_until_complete(wztgClient('bot', TELEGRAM_API, TELEGRAM_HASH, bot_token=BOT_TOKEN, 
-                                       workers=1000, parse_mode=enums.ParseMode.HTML).start())
+
+# Run the coroutine to create and start the bot
+bot = loop.run_until_complete(create_bot())
+
+# Set up the bot configuration
 bot_loop = bot.loop
 bot_name = bot.me.username
 scheduler = AsyncIOScheduler(timezone=str(get_localzone()), event_loop=bot_loop)
