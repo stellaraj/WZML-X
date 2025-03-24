@@ -857,18 +857,7 @@ else:
         if v in ["", "*"]:
             del qb_opt[k]
     qb_client.app_set_preferences(qb_opt)
-async def create_bot():
-    log_info("Creating client from BOT_TOKEN")
-    client = wztgClient(
-        'bot', 
-        TELEGRAM_API, 
-        TELEGRAM_HASH, 
-        bot_token=BOT_TOKEN,
-        workers=1000, 
-        parse_mode=enums.ParseMode.HTML
-    )
-    await client.start()
-    return client
+
 log_info("Creating client from BOT_TOKEN")
 loop = get_event_loop()
 
