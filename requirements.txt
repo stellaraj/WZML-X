@@ -31,7 +31,7 @@ psutil
 pybase64
 pycountry
 pymongo
-git+https://github.com/KurimuzonAkuma/pyrogram
+kurigram
 python-dotenv
 python-magic
 qbittorrent-api
